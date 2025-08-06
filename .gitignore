@@ -1,0 +1,27 @@
+# 🧹 Node modules - thư viện cài qua npm
+node_modules/
+
+# 📦 Thư mục build (nếu có dùng TypeScript hay tool build khác)
+dist/
+build/
+
+# 📁 Thư mục lưu file upload (tạo runtime, không cần push lên)
+uploads/
+
+# 🔑 File cấu hình môi trường
+.env
+.env.local
+.env.*.local
+
+# 🐞 Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 🖼️ OS files / editor files
+.DS_Store
+Thumbs.db
+
+# 🛠️ VS Code settings (nếu không muốn chia sẻ)
+.vscode/
