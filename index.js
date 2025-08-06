@@ -4,6 +4,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
+import upload from "./config/multerConfig.js"
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -14,29 +15,8 @@ app.use(cors());
 app.use(express.json());
 
 
-// tạo đường dẫn tuyệt đối
-const uploadPath = path.join(__dirname, 'uploads');
-console.log('__dirname:', __dirname);
 
 
-// tao option
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-
-    // Đảm bảo thư mục upload tồn tại
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    
-    cb(null, uploadPath); // ✅ luôn đúng
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
-
-// tạo hàm 
-const upload = multer({ storage });
 
 // Tạo route GET "/"
 app.get('/', (req, res) => {
