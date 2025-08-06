@@ -3,7 +3,7 @@ import multer from 'multer';                   // Multer: middleware để xử 
 import path from 'path';                       // path: làm việc với đường dẫn file (join, resolve, v.v.)
 import fs from 'fs';                           // fs: thao tác với file và thư mục (đọc, ghi, tạo thư mục)
 import { fileURLToPath } from 'url';           // Chuyển đổi URL module thành đường dẫn thực tế (dùng trong ES Module)
-
+import 'dotenv/config'; 
 
 // 👉 Đây là một file cấu hình và khởi tạo middleware
 //  multer để giúp backend xử lý việc upload file từ người dùng
@@ -12,9 +12,11 @@ import { fileURLToPath } from 'url';           // Chuyển đổi URL module th�
 const __filename = fileURLToPath(import.meta.url);  // Lấy đường dẫn file hiện tại
 const __dirname = path.dirname(__filename);         // Lấy thư mục cha chứa file hiện tại
 
-// Tạo đường dẫn tuyệt đối tới thư mục uploads nằm cùng cấp thư mục gốc backend
-const uploadPath = path.join(__dirname, '../uploads');
 
+const uploadDir = process.env.UPLOAD_DIR || 'uploads'
+
+// Tạo đường dẫn tuyệt đối tới thư mục uploads nằm cùng cấp thư mục gốc backend
+const uploadPath = path.join(__dirname, '..', uploadDir);
 
 // Kiểm tra nếu thư mục uploads chưa tồn tại thì tạo mới nó
 if (!fs.existsSync(uploadPath)) {
@@ -35,7 +37,6 @@ const storage = multer.diskStorage({
     cb(null, `${timestamp}-${originalName}`);     // Đặt tên mới: thời_gian-gốc.ext → tránh trùng tên
   }
 });
-
 
 // Tạo middleware Multer với cấu hình đã định nghĩa
 const upload = multer({ storage });
