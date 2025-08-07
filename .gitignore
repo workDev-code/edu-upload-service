@@ -25,3 +25,9 @@ Thumbs.db
 
 # 🛠️ VS Code settings (nếu không muốn chia sẻ)
 .vscode/
+
+# Bỏ toàn bộ file log
+*.log
+
+# Bỏ thư mục logs ở root
+logs/

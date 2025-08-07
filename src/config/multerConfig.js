@@ -11,6 +11,7 @@ import 'dotenv/config';
 // Tạo biến __filename và __dirname thủ công (vì ES Module không hỗ trợ sẵn)
 const __filename = fileURLToPath(import.meta.url);  // Lấy đường dẫn file hiện tại
 const __dirname = path.dirname(__filename);         // Lấy thư mục cha chứa file hiện tại
+const allowedTypes = process.env.ALLOWED_MIME_TYPES.split(',');
 
 
 const uploadDir = process.env.UPLOAD_DIR || 'uploads'
@@ -31,15 +32,26 @@ const storage = multer.diskStorage({
   },
 
   // Hàm đặt tên file khi lưu
-  filename: (req, file, cb) => {
+  filename: (_, file, cb) => {
     const timestamp = Date.now();                 // Lấy thời gian hiện tại (tính bằng ms)
     const originalName = file.originalname;       // Tên file gốc do người dùng upload
     cb(null, `${timestamp}-${originalName}`);     // Đặt tên mới: thời_gian-gốc.ext → tránh trùng tên
   }
 });
 
+// taọ thêm filter check định dạng
+const fileFilter = (_, file, cb) => {
+  if(allowedTypes.includes(file.mimetype)){
+    cb(null, true);
+  }
+  else cb(new Error('❌ File type không được hỗ trợ!'), false);
+}
+
 // Tạo middleware Multer với cấu hình đã định nghĩa
-const upload = multer({ storage });
+const upload = multer({ 
+    storage,
+    fileFilter
+  });
 
 // Export middleware này để dùng trong các route khác
 export default upload;

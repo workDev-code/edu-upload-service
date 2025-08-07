@@ -1,17 +1,18 @@
 // logger.js
 import winston from 'winston';
+import moment from 'moment-timezone';
 
 const logger = winston.createLogger({
 
     // level: 'info': tức là ghi log từ info trở lên (info, warn, error)
     // Những log nhỏ hơn (debug) sẽ bị bỏ qua nếu không khai báo
     level: 'info',
-
+    
     format: winston.format.combine(
-        // Thêm thời gian vào log
-        winston.format.timestamp(), 
-        winston.format.printf(({ timestamp, level, message, ...meta }) => {
-        return `[${timestamp}] ${level.toUpperCase()}: ${message} ${Object.keys(meta).length ? JSON.stringify(meta) : ''}`;
+        winston.format.printf(({ level, message, ...meta }) => {
+        const timestamp = moment().tz('Asia/Ho_Chi_Minh').format('YYYY-MM-DD HH:mm:ss');
+        const metaInfo = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
+        return `[${timestamp}] ${level.toUpperCase()}: ${message}${metaInfo}`;
         })
     ),
     transports: [

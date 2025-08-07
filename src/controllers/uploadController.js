@@ -20,7 +20,6 @@ export const handleUpload = async (req, res) => {
   }
 };
 
-
 export const handleUploadMultileFiles = async (req, res) => {
   try{
     // check coi có files nào được gửi lên không
@@ -29,8 +28,18 @@ export const handleUploadMultileFiles = async (req, res) => {
         return res.status(400).json({ error: 'Không có file nào được gửi lên.' });
     }
 
-    // logger.info(`Upload thành công ${req.files.length} file`);
-    res.status(200).json({ message: 'Upload thành công'});
+    const uploadedFiles = req.files.map(file => ({
+      originalName: file.originalname, 	// Tên thật file người dùng gửi lên
+      filename: file.filename, // Tên file do server đặt (tránh trùng, an toàn)
+      mimetype: file.mimetype,
+      size: file.size,
+      url: `${process.env.HOST_URL}/uploads/${file.filename}` // 🔗 Trả về link truy cập công khai
+    }));
+
+    res.json({
+      message: 'Upload nhiều file thành công!',
+      files: uploadedFiles
+    });
 
   }catch(error){
     console.error('❌ Lỗi trong quá trình upload:', error);
