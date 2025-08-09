@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 export const defaultMimeTypes = {
   image: [
     'image/jpeg',
