@@ -1,0 +1,2 @@
+import { createLogger } from "../config/loggerConfig.js";
+const logger = createLogger(import.meta.url || __filename);

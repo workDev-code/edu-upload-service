@@ -20,6 +20,7 @@
     "winston": "^3.17.0"
   },
   "devDependencies": {
+    "eslint-plugin-jsdoc": "^52.0.4",
     "nodemon": "^3.1.10"
   }
 }

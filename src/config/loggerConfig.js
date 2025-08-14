@@ -1,31 +1,53 @@
 // logger.js
-import winston from 'winston';
-import moment from 'moment-timezone';
+import path from "path";
+import winston from "winston";
+import moment from "moment-timezone";
+import util from "util"; // <-- thêm dòng này
+const logger = createLogger(import.meta.url); // tạo instance logger
 
-const logger = winston.createLogger({
+export function createLogger(moduleFilename) {
+  const filename = path.basename(moduleFilename);
+  const isProd = process.env.NODE_ENV === "production";
 
-    // level: 'info': tức là ghi log từ info trở lên (info, warn, error)
-    // Những log nhỏ hơn (debug) sẽ bị bỏ qua nếu không khai báo
-    level: 'info',
-
+  return winston.createLogger({
+    level: process.env.LOG_LEVEL || "info",
     format: winston.format.combine(
-        winston.format.printf(({ level, message, ...meta }) => {
-        const timestamp = moment().tz('Asia/Ho_Chi_Minh').format('YYYY-MM-DD HH:mm:ss');
-        const metaInfo = Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : '';
-        return `[${timestamp}] ${level.toUpperCase()}: ${message}${metaInfo}`;
-        })
+      // cho phép %s / %o nếu muốn later
+      winston.format.splat(),
+      // colorize chỉ ảnh hưởng console formatter, safe to include
+      !isProd ? winston.format.colorize() : winston.format.uncolorize(),
+      winston.format.label({ label: filename }),
+      winston.format.printf(({ level, message, label, ...meta }) => {
+        const timestamp = moment()
+          .tz("Asia/Ho_Chi_Minh")
+          .format("YYYY-MM-DD HH:mm:ss");
+        // nếu meta rỗng thì không in, nếu có thì pretty inspect
+        const metaKeys = Object.keys(meta);
+        const metaInfo =
+          metaKeys.length > 0
+            ? `\n${util.inspect(meta, {
+                depth: null,
+                colors: !isProd,
+                compact: false,
+              })}`
+            : "";
+        return `[${timestamp}] [${label}] ${level}: ${message}${metaInfo}`;
+      })
     ),
     transports: [
-        new winston.transports.Console(), // In ra console
-        new winston.transports.File({ filename: 'logs/error.log', level: 'error' }), // Ghi log lỗi ra file
-        new winston.transports.File({ filename: 'logs/combined.log' }) // Ghi toàn bộ log ra file
+      new winston.transports.Console(),
+      new winston.transports.File({
+        filename: "logs/error.log",
+        level: "error",
+      }),
+      new winston.transports.File({ filename: "logs/combined.log" }),
     ],
-});
-
-export default logger;
+  });
+}
+export default createLogger;
 
 export const logUnexpectedFileLimit = (req) => {
-  logger.warn('Vượt quá số lượng file cho phép.', {
+  logger.warn("Vượt quá số lượng file cho phép.", {
     ip: req.ip,
     url: req.originalUrl,
     method: req.method,
@@ -34,7 +56,7 @@ export const logUnexpectedFileLimit = (req) => {
 };
 
 export const logMulterError = (err, req) => {
-  logger.warn('Lỗi multer khác.', {
+  logger.warn("Lỗi multer khác.", {
     error: err.message,
     code: err.code,
     ip: req.ip,
@@ -43,22 +65,22 @@ export const logMulterError = (err, req) => {
 };
 
 export const logUnknownUploadError = (err, req) => {
-  logger.error('Lỗi không xác định khi upload file.', {
+  logger.error("Lỗi không xác định khi upload file.", {
     error: err.message,
     ip: req.ip,
     url: req.originalUrl,
   });
 };
 
-
 export const logUploadSuccess = (req) => {
-  logger.info(`Upload thành công ${req.files.length} file.`, {
+  // Nếu có req.files (array) → dùng trực tiếp
+  // Nếu có req.file (single) → tạo mảng 1 phần tử
+  const files = req.files || (req.file ? [req.file] : []);
+
+  logger.info(`Upload thành công ${files.length} file.`, {
     ip: req.ip,
     url: req.originalUrl,
     method: req.method,
-    filenames: req.files.map(f => f.originalname),
+    filenames: files.map((f) => f.originalname),
   });
 };
-
-
-
