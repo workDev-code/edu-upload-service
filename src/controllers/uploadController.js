@@ -39,9 +39,7 @@ export const handleUpload = async (req, res) => {
 };
 
 export const handleUploadMultileFiles = (fileType) => async (req, res) => {
-  logger.info(fileType);
   try {
-    
     if (!req.files || req.files.length === 0) {
       logger.warn("Upload nhiều file thất bại: không có file nào được gửi lên");
       return res.status(400).json({ error: "Không có file nào được gửi lên." });
@@ -73,27 +71,45 @@ export const handleUploadMultileFiles = (fileType) => async (req, res) => {
   }
 };
 
-export const listUploadedFiles  = async (_, res) => {
+export const listUploadedFiles = async (req, res) => {
   try {
-    const uploadDir = path.join(process.cwd(), "src", "uploads");
+    // logger.info(`📂 Current working directory: ${process.cwd()}`);
+    const uploadDir = path.join(process.cwd(), "uploads");
+    logger.info(`📂 Current working directory: ${uploadDir}`);
 
-    try {
-      await fs.access(uploadDir);
-    } catch {
-      logger.warn("Truy cập thư mục uploads thất bại: không tồn tại");
-      return res.status(404).json({ error: "Thư mục uploads không tồn tại." });
-    }
+    // 📂 Danh sách thư mục cần đọc
+    const uploadDirs = ["images", "videos", "documents", "audios"].map((f) =>
+      path.join(uploadDir, f)
+    );
 
-    const files = await fs.readdir(uploadDir);
-    logger.info(`Liệt kê ${files.length} file trong thư mục uploads`);
+    logger.info(
+      `📂 uploadDirs directories: ${JSON.stringify(uploadDirs, null, 2)}`
+    );
 
-    res.status(200).json({
-      total_files: files.length,
-      files: files,
+    // → tạo một mảng các Promise.
+    const promises = uploadDirs.map(async (dir) => {
+      try {
+        await fs.access(dir);
+        const files = await fs.readdir(dir);
+        logger.info(`📂 ${dir} -> ${files.length} file`);
+        return { folder: dir, files };
+      } catch {
+        logger.warn(`⚠ Thư mục không tồn tại: ${dir}`);
+        return { folder: dir, files: [] };
+      }
+    });
+
+    const results = await Promise.all(promises); // đợi tất cả Promise hoàn thành
+
+    return res.status(200).json({
+      message: "ok",
+      data: valid, // đây là danh sách file trong từng thư mục
     });
   } catch (error) {
     logger.error(`Lỗi khi đọc danh sách file upload: ${error.stack}`);
-    res.status(500).json({ error: "Không thể đọc danh sách file upload." });
+    return res
+      .status(500)
+      .json({ error: "Không thể đọc danh sách file upload." });
   }
 };
 
